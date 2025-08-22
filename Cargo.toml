@@ -1,7 +1,17 @@
 [package]
 name = "dodopayments_rust"
 version = "0.1.0"
-edition = "2024"
+edition = "2021"
+license = "MIT"
+description = "Rust SDK for Dodo Payments API"
+homepage = "https://github.com/Muhammad-Owais-Warsi/dodpayments_rust_sdk"
+repository = "https://github.com/Muhammad-Owais-Warsi/dodpayments_rust_sdk"
+documentation = "https://docs.rs/dodopayments_rust"
+readme = "README.md"
+keywords = ["payments", "api", "sdk"]
+categories = ["api-bindings", "finance"]
+
+include = ["src/**/*", "Cargo.toml", "README.md", "LICENSE"]
 
 [dependencies]
 bytes = "1.10.1"

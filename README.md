@@ -1,2 +1,2 @@
-## Dodopayments rust sdk (under development)
-Rust sdk to interact with dodopayments api. 
+## Dodopayments rust sdk
+Rust sdk to interact with dodopayments api.
