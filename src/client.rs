@@ -1,9 +1,9 @@
-use crate::api::disputes::DisputesApi;
-use crate::api::misc::MiscApi;
-use crate::api::payments::PaymentsApi;
-use crate::api::payouts::PayoutApi;
-use crate::api::refunds::RefundsApi;
-
+use crate::api::{
+    addons::AddOnsApi, brands::BrandsApi, checkout::CheckoutApi, customers::CustomersApi,
+    discounts::DiscountsApi, disputes::DisputesApi, licenses::LicensesApi, misc::MiscApi,
+    payments::PaymentsApi, payouts::PayoutApi, products::ProductsApi, refunds::RefundsApi,
+    subscriptions::SubscriptionsApi, webhooks::WebHooksApi,
+};
 use reqwest::{Client, Method};
 use std::collections::HashMap;
 use thiserror::Error;
@@ -26,6 +26,9 @@ pub enum DodoError {
 
     #[error("API error {status}: {message}")]
     Api { status: u16, message: String },
+
+    #[error("Custom error {message}")]
+    Custom { message: String },
 }
 
 impl DodoPaymentsClient {
@@ -82,8 +85,36 @@ impl DodoPaymentsClient {
         Ok(ResponseData::Blob(bytes))
     }
 
+    pub fn checkout_session(&self) -> CheckoutApi {
+        CheckoutApi { client: self }
+    }
+
     pub fn payments(&self) -> PaymentsApi {
         PaymentsApi { client: self }
+    }
+
+    pub fn subscriptions(&self) -> SubscriptionsApi {
+        SubscriptionsApi { client: self }
+    }
+
+    pub fn discounts(&self) -> DiscountsApi {
+        DiscountsApi { client: self }
+    }
+
+    pub fn licenses(&self) -> LicensesApi {
+        LicensesApi { client: self }
+    }
+
+    pub fn customers(&self) -> CustomersApi {
+        CustomersApi { client: self }
+    }
+
+    pub fn products(&self) -> ProductsApi {
+        ProductsApi { client: self }
+    }
+
+    pub fn addons(&self) -> AddOnsApi {
+        AddOnsApi { client: self }
     }
 
     pub fn payouts(&self) -> PayoutApi {
@@ -96,6 +127,14 @@ impl DodoPaymentsClient {
 
     pub fn disputes(&self) -> DisputesApi {
         DisputesApi { client: self }
+    }
+
+    pub fn brands(&self) -> BrandsApi {
+        BrandsApi { client: self }
+    }
+
+    pub fn webhooks(&self) -> WebHooksApi {
+        WebHooksApi { client: self }
     }
 
     pub fn misc(&self) -> MiscApi {

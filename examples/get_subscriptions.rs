@@ -1,4 +1,5 @@
 use dodopayments_rust::{DodoPaymentsClient, DodoPaymentsClientBuilder, ResponseData};
+use std::collections::HashMap;
 
 #[tokio::main]
 async fn main() {
@@ -8,13 +9,15 @@ async fn main() {
         .build()
         .unwrap();
 
-    let query_params = None;
+    let mut query_params = HashMap::new();
+    query_params.insert("page_size", "1");
+
     let body = None;
-    let ext_path = "id";
+    let ext_path = None;
 
     match client
-        .disputes()
-        .retrieve(query_params, body, Some(ext_path))
+        .subscriptions()
+        .list(Some(query_params), body, ext_path)
         .await
     {
         Ok(resp) => match resp {

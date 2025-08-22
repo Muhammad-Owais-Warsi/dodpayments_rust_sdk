@@ -1,5 +1,14 @@
+pub mod addons;
+pub mod brands;
+pub mod checkout;
+pub mod customers;
+pub mod discounts;
 pub mod disputes;
+pub mod licenses;
 pub mod misc;
 pub mod payments;
 pub mod payouts;
+pub mod products;
 pub mod refunds;
+pub mod subscriptions;
+pub mod webhooks;

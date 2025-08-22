@@ -10,11 +10,12 @@ async fn main() {
 
     let query_params = None;
     let body = None;
+
     let ext_path = "id";
 
     match client
-        .disputes()
-        .retrieve(query_params, body, Some(ext_path))
+        .products()
+        .update(query_params, body, Some(ext_path))
         .await
     {
         Ok(resp) => match resp {

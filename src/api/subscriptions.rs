@@ -2,11 +2,11 @@ use crate::client::{DodoError, DodoPaymentsClient, ResponseData};
 use reqwest::Method;
 use std::collections::HashMap;
 
-pub struct PaymentsApi<'client> {
+pub struct SubscriptionsApi<'client> {
     pub(crate) client: &'client DodoPaymentsClient,
 }
 
-impl<'client> PaymentsApi<'client> {
+impl<'client> SubscriptionsApi<'client> {
     pub async fn list(
         &self,
         query_params: Option<HashMap<&str, &str>>,
@@ -14,7 +14,7 @@ impl<'client> PaymentsApi<'client> {
         ext_path: Option<&str>,
     ) -> Result<ResponseData, DodoError> {
         self.client
-            .request(Method::GET, "/payments", query_params, body, ext_path)
+            .request(Method::GET, "/subscriptions", query_params, body, ext_path)
             .await
     }
 
@@ -25,7 +25,7 @@ impl<'client> PaymentsApi<'client> {
         ext_path: Option<&str>,
     ) -> Result<ResponseData, DodoError> {
         self.client
-            .request(Method::POST, "/payments", query_params, body, ext_path)
+            .request(Method::POST, "/subscriptions", query_params, body, ext_path)
             .await
     }
 
@@ -36,11 +36,36 @@ impl<'client> PaymentsApi<'client> {
         ext_path: Option<&str>,
     ) -> Result<ResponseData, DodoError> {
         self.client
-            .request(Method::GET, "/payments", query_params, body, ext_path)
+            .request(Method::GET, "/subscriptions", query_params, body, ext_path)
             .await
     }
 
-    pub async fn retrieve_invoice(
+    pub async fn change_plan(
+        &self,
+        query_params: Option<HashMap<&str, &str>>,
+        body: Option<serde_json::Value>,
+        ext_path: Option<&str>,
+    ) -> Result<ResponseData, DodoError> {
+        let new_ext_path = match ext_path {
+            Some(p) => format!("{}/charge", p),
+            None => {
+                return Err(DodoError::Custom {
+                    message: "Ext path not found".to_string(),
+                });
+            }
+        };
+        self.client
+            .request(
+                Method::POST,
+                "/subscriptions",
+                query_params,
+                body,
+                Some(&new_ext_path),
+            )
+            .await
+    }
+
+    pub async fn update(
         &self,
         query_params: Option<HashMap<&str, &str>>,
         body: Option<serde_json::Value>,
@@ -48,8 +73,8 @@ impl<'client> PaymentsApi<'client> {
     ) -> Result<ResponseData, DodoError> {
         self.client
             .request(
-                Method::GET,
-                "/invoices/payments",
+                Method::PATCH,
+                "/subscriptions",
                 query_params,
                 body,
                 ext_path,
@@ -57,7 +82,7 @@ impl<'client> PaymentsApi<'client> {
             .await
     }
 
-    pub async fn retrieve_line_items(
+    pub async fn charge(
         &self,
         query_params: Option<HashMap<&str, &str>>,
         body: Option<serde_json::Value>,
@@ -74,8 +99,8 @@ impl<'client> PaymentsApi<'client> {
 
         self.client
             .request(
-                Method::GET,
-                "/payments",
+                Method::POST,
+                "/subscriptions",
                 query_params,
                 body,
                 Some(&new_ext_path),

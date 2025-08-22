@@ -13,8 +13,8 @@ async fn main() {
     let ext_path = "id";
 
     match client
-        .disputes()
-        .retrieve(query_params, body, Some(ext_path))
+        .webhooks()
+        .retreive_webhook_headers(query_params, body, Some(ext_path))
         .await
     {
         Ok(resp) => match resp {

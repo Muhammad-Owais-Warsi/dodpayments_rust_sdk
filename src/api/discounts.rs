@@ -2,11 +2,11 @@ use crate::client::{DodoError, DodoPaymentsClient, ResponseData};
 use reqwest::Method;
 use std::collections::HashMap;
 
-pub struct PaymentsApi<'client> {
+pub struct DiscountsApi<'client> {
     pub(crate) client: &'client DodoPaymentsClient,
 }
 
-impl<'client> PaymentsApi<'client> {
+impl<'client> DiscountsApi<'client> {
     pub async fn list(
         &self,
         query_params: Option<HashMap<&str, &str>>,
@@ -14,7 +14,7 @@ impl<'client> PaymentsApi<'client> {
         ext_path: Option<&str>,
     ) -> Result<ResponseData, DodoError> {
         self.client
-            .request(Method::GET, "/payments", query_params, body, ext_path)
+            .request(Method::GET, "/discounts", query_params, body, ext_path)
             .await
     }
 
@@ -25,61 +25,40 @@ impl<'client> PaymentsApi<'client> {
         ext_path: Option<&str>,
     ) -> Result<ResponseData, DodoError> {
         self.client
-            .request(Method::POST, "/payments", query_params, body, ext_path)
+            .request(Method::POST, "/discounts", query_params, body, ext_path)
             .await
     }
 
-    pub async fn retrieve(
+    pub async fn retreive(
         &self,
         query_params: Option<HashMap<&str, &str>>,
         body: Option<serde_json::Value>,
         ext_path: Option<&str>,
     ) -> Result<ResponseData, DodoError> {
         self.client
-            .request(Method::GET, "/payments", query_params, body, ext_path)
+            .request(Method::GET, "/discounts", query_params, body, ext_path)
             .await
     }
 
-    pub async fn retrieve_invoice(
+    pub async fn update(
         &self,
         query_params: Option<HashMap<&str, &str>>,
         body: Option<serde_json::Value>,
         ext_path: Option<&str>,
     ) -> Result<ResponseData, DodoError> {
         self.client
-            .request(
-                Method::GET,
-                "/invoices/payments",
-                query_params,
-                body,
-                ext_path,
-            )
+            .request(Method::PATCH, "/discounts", query_params, body, ext_path)
             .await
     }
 
-    pub async fn retrieve_line_items(
+    pub async fn delete(
         &self,
         query_params: Option<HashMap<&str, &str>>,
         body: Option<serde_json::Value>,
         ext_path: Option<&str>,
     ) -> Result<ResponseData, DodoError> {
-        let new_ext_path = match ext_path {
-            Some(p) => format!("{}/charge", p),
-            None => {
-                return Err(DodoError::Custom {
-                    message: "Ext path not found".to_string(),
-                });
-            }
-        };
-
         self.client
-            .request(
-                Method::GET,
-                "/payments",
-                query_params,
-                body,
-                Some(&new_ext_path),
-            )
+            .request(Method::DELETE, "/discounts", query_params, body, ext_path)
             .await
     }
 }

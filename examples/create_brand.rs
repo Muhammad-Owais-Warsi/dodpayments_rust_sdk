@@ -9,14 +9,11 @@ async fn main() {
         .unwrap();
 
     let query_params = None;
-    let body = None;
-    let ext_path = "id";
+    let ext_path = None;
 
-    match client
-        .disputes()
-        .retrieve(query_params, body, Some(ext_path))
-        .await
-    {
+    let body = None;
+
+    match client.brands().create(query_params, body, ext_path).await {
         Ok(resp) => match resp {
             ResponseData::Text(text) => {
                 println!("Text response: {}", text);

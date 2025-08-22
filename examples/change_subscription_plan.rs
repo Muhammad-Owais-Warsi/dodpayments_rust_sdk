@@ -1,4 +1,5 @@
 use dodopayments_rust::{DodoPaymentsClient, DodoPaymentsClientBuilder, ResponseData};
+use serde_json::json;
 
 #[tokio::main]
 async fn main() {
@@ -9,12 +10,17 @@ async fn main() {
         .unwrap();
 
     let query_params = None;
-    let body = None;
-    let ext_path = "id";
+    let ext_path = None;
+
+    let body = Some(json!({
+        "quantity": "",
+        "proration_billing_mode":  "",
+        "product_id": ""
+    }));
 
     match client
-        .disputes()
-        .retrieve(query_params, body, Some(ext_path))
+        .subscriptions()
+        .change_plan(query_params, body, ext_path)
         .await
     {
         Ok(resp) => match resp {

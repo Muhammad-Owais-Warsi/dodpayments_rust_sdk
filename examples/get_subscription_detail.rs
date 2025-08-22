@@ -13,7 +13,7 @@ async fn main() {
     let ext_path = "id";
 
     match client
-        .disputes()
+        .subscriptions()
         .retrieve(query_params, body, Some(ext_path))
         .await
     {

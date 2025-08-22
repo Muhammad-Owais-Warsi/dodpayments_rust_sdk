@@ -18,7 +18,7 @@ impl<'client> DisputesApi<'client> {
             .await
     }
 
-    pub async fn retreive(
+    pub async fn retrieve(
         &self,
         query_params: Option<HashMap<&str, &str>>,
         body: Option<serde_json::Value>,
