@@ -5,7 +5,7 @@ use std::collections::HashMap;
 async fn main() {
     let client: DodoPaymentsClient = DodoPaymentsClientBuilder::new()
         .bearer_token("")
-        .enviroment("https://test.dodopayments.com")
+        .enviroment("test_mode")
         .build()
         .unwrap();
 

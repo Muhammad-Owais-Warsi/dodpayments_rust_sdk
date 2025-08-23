@@ -19,7 +19,7 @@ use std::collections::HashMap;
 async fn main() {
     let client: DodoPaymentsClient = DodoPaymentsClientBuilder::new()
         .bearer_token("")
-        .enviroment("https://test.dodopayments.com")
+        .enviroment("test_mode")
         .build()
         .unwrap();
 
@@ -48,4 +48,10 @@ async fn main() {
 
 ```
 
+# Examples
 You can checkout examples folder to view the usage of all the endpoints.
+To run any example run the following command in your root
+
+```js
+  cargo run --example <file_name>
+```
