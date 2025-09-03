@@ -5,7 +5,7 @@ The REST API documentation can be found on [docs.dodopayments.com](https://docs.
 
 # Installation
 
-```rust
+```js
 cargo add dodopayments_rust
 ```
 
