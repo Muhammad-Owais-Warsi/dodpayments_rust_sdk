@@ -76,4 +76,82 @@ impl<'client> CustomersApi<'client> {
             )
             .await
     }
+
+    pub async fn get_customer_wallets(
+        &self,
+        query_params: Option<HashMap<&str, &str>>,
+        body: Option<serde_json::Value>,
+        ext_path: Option<&str>,
+    ) -> Result<ResponseData, DodoError> {
+        let new_ext_path = match ext_path {
+            Some(p) => format!("{}/wallets", p),
+            None => {
+                return Err(DodoError::Custom {
+                    message: "Ext path not found".to_string(),
+                });
+            }
+        };
+
+        self.client
+            .request(
+                Method::GET,
+                "/customers",
+                query_params,
+                body,
+                Some(&new_ext_path),
+            )
+            .await
+    }
+
+    pub async fn get_ledger_entries(
+        &self,
+        query_params: Option<HashMap<&str, &str>>,
+        body: Option<serde_json::Value>,
+        ext_path: Option<&str>,
+    ) -> Result<ResponseData, DodoError> {
+        let new_ext_path = match ext_path {
+            Some(p) => format!("{}/wallets/ledger-entries", p),
+            None => {
+                return Err(DodoError::Custom {
+                    message: "Ext path not found".to_string(),
+                });
+            }
+        };
+
+        self.client
+            .request(
+                Method::GET,
+                "/customers",
+                query_params,
+                body,
+                Some(&new_ext_path),
+            )
+            .await
+    }
+
+    pub async fn create_ledger_entry(
+        &self,
+        query_params: Option<HashMap<&str, &str>>,
+        body: Option<serde_json::Value>,
+        ext_path: Option<&str>,
+    ) -> Result<ResponseData, DodoError> {
+        let new_ext_path = match ext_path {
+            Some(p) => format!("{}/wallets/ledger-entries", p),
+            None => {
+                return Err(DodoError::Custom {
+                    message: "Ext path not found".to_string(),
+                });
+            }
+        };
+
+        self.client
+            .request(
+                Method::POST,
+                "/customers",
+                query_params,
+                body,
+                Some(&new_ext_path),
+            )
+            .await        
+    }
 }
