@@ -107,4 +107,30 @@ impl<'client> SubscriptionsApi<'client> {
             )
             .await
     }
+
+    pub async fn get_usage_history(
+        &self, 
+        query_params: Option<HashMap<&str, &str>>,
+        body: Option<serde_json::Value>,
+        ext_path: Option<&str>,
+    ) -> Result<ResponseData, DodoError> {
+        let new_ext_path = match ext_path {
+            Some(p) => format!("{}/usage-history", p),
+            None => {
+                return Err(DodoError::Custom {
+                    message: "Ext path not found".to_string(),
+                });
+            }
+        };
+
+        self.client
+            .request(
+                Method::GET,
+                "/subscriptions",
+                query_params,
+                body,
+                Some(&new_ext_path),
+            )
+            .await
+    }
 }

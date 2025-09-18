@@ -12,3 +12,5 @@ pub mod products;
 pub mod refunds;
 pub mod subscriptions;
 pub mod webhooks;
+pub mod meters;
+pub mod usage_events;

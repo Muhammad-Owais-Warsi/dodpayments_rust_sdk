@@ -2,7 +2,7 @@ use crate::api::{
     addons::AddOnsApi, brands::BrandsApi, checkout::CheckoutApi, customers::CustomersApi,
     discounts::DiscountsApi, disputes::DisputesApi, licenses::LicensesApi, misc::MiscApi,
     payments::PaymentsApi, payouts::PayoutApi, products::ProductsApi, refunds::RefundsApi,
-    subscriptions::SubscriptionsApi, webhooks::WebHooksApi,
+    subscriptions::SubscriptionsApi, webhooks::WebHooksApi, meters::MetersApi, usage_events::UsageEventsApi
 };
 use reqwest::{Client, Method};
 use std::collections::HashMap;
@@ -115,6 +115,14 @@ impl DodoPaymentsClient {
 
     pub fn addons(&self) -> AddOnsApi {
         AddOnsApi { client: self }
+    }
+
+    pub fn meters(&self) -> MetersApi {
+        MetersApi { client: self }
+    }
+
+    pub fn usage_events(&self) -> UsageEventsApi {
+        UsageEventsApi { client: self }
     }
 
     pub fn payouts(&self) -> PayoutApi {
