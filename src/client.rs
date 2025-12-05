@@ -1,8 +1,9 @@
 use crate::api::{
     addons::AddOnsApi, brands::BrandsApi, checkout::CheckoutApi, customers::CustomersApi,
-    discounts::DiscountsApi, disputes::DisputesApi, licenses::LicensesApi, misc::MiscApi,
-    payments::PaymentsApi, payouts::PayoutApi, products::ProductsApi, refunds::RefundsApi,
-    subscriptions::SubscriptionsApi, webhooks::WebHooksApi, meters::MetersApi, usage_events::UsageEventsApi
+    discounts::DiscountsApi, disputes::DisputesApi, licenses::LicensesApi, meters::MetersApi,
+    misc::MiscApi, payments::PaymentsApi, payouts::PayoutApi, products::ProductsApi,
+    refunds::RefundsApi, subscriptions::SubscriptionsApi, usage_events::UsageEventsApi,
+    wallets::WalletsApi, webhooks::WebHooksApi,
 };
 use reqwest::{Client, Method};
 use std::collections::HashMap;
@@ -107,6 +108,10 @@ impl DodoPaymentsClient {
 
     pub fn customers(&self) -> CustomersApi {
         CustomersApi { client: self }
+    }
+
+    pub fn wallets(&self) -> WalletsApi {
+        WalletsApi { client: self }
     }
 
     pub fn products(&self) -> ProductsApi {
