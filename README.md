@@ -1,5 +1,5 @@
 ## Dodo Payments Rust SDK
-Rust sdk to interact with dodopayments REST API.
+Unofficial rust sdk to interact with dodopayments REST API.
 
 The REST API documentation can be found on [docs.dodopayments.com](https://docs.dodopayments.com).
 
