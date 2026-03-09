@@ -151,7 +151,7 @@ impl DodoPaymentsClient {
         MiscApi::new(self)
     }
 
-    pub fn balance_ledgers(&self) -> BalanceLedgerEntriesApi {
+    pub fn balance_ledgers_entries(&self) -> BalanceLedgerEntriesApi {
         BalanceLedgerEntriesApi::new(self)
     }
 

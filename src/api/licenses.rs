@@ -84,6 +84,12 @@ impl<'client> LicenseKeyByIdApi<'client> {
             format!("/license_keys/{}", self.license_key_id),
         )
     }
+
+    pub fn license_key_instances(&self) -> LicenseKeyInstancesApi<'client> {
+        LicenseKeyInstancesApi {
+            client: self.client,
+        }
+    }
 }
 
 pub struct LicenseKeyInstancesApi<'client> {

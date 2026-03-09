@@ -1,36 +1,16 @@
-use dodopayments_rust::{DodoPaymentsClient, DodoPaymentsClientBuilder, ResponseData};
-use serde_json::json;
+use dodopayments_rust::{to_pretty_json, DodoPaymentsClientBuilder};
 
 #[tokio::main]
-async fn main() {
-    let client: DodoPaymentsClient = DodoPaymentsClientBuilder::new()
-        .bearer_token("")
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let api_key = std::env::var("DODO_API_KEY")?;
+
+    let client = DodoPaymentsClientBuilder::new()
+        .bearer_token(&api_key)
         .enviroment("test_mode")
-        .build()
-        .unwrap();
+        .build()?;
 
-    let query_params = None;
-    let ext_path = None;
+    println!("Note: preview_checkout requires complex request types.");
+    println!("See create_checkout.rs for checkout session creation example.");
 
-    let body = Some(json!({
-        "product_cart": {
-
-        },
-    }));
-
-    match client
-        .checkout_session()
-        .preview(query_params, body, ext_path)
-        .await
-    {
-        Ok(resp) => match resp {
-            ResponseData::Text(text) => {
-                println!("Text response: {}", text);
-            }
-            ResponseData::Blob(bytes) => {
-                std::fs::write("invoice.pdf", &bytes).expect("Failed to write file");
-            }
-        },
-        Err(err) => eprintln!("Error: {}", err),
-    }
+    Ok(())
 }

@@ -1,35 +1,27 @@
-use dodopayments_rust::{DodoPaymentsClient, DodoPaymentsClientBuilder, ResponseData};
-use serde_json::json;
+use dodopayments_rust::{models::WebhookHeadersReq, to_pretty_json, DodoPaymentsClientBuilder};
 
 #[tokio::main]
-async fn main() {
-    let client: DodoPaymentsClient = DodoPaymentsClientBuilder::new()
-        .bearer_token("")
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let api_key = std::env::var("DODO_API_KEY")?;
+
+    let client = DodoPaymentsClientBuilder::new()
+        .bearer_token(&api_key)
         .enviroment("test_mode")
-        .build()
-        .unwrap();
+        .build()?;
 
-    let query_params = None;
-    let body = Some(json!({
-        "foo": "",
+    let webhook_id = "wh_xxxxxxxxxx";
 
-    }));
-
-    let ext_path = "id";
-
-    match client
+    let resp = client
         .webhooks()
-        .update_webhook_headers(query_params, body, Some(ext_path))
-        .await
-    {
-        Ok(resp) => match resp {
-            ResponseData::Text(text) => {
-                println!("Text response: {}", text);
-            }
-            ResponseData::Blob(bytes) => {
-                std::fs::write("invoice.pdf", &bytes).expect("Failed to write file");
-            }
-        },
-        Err(err) => eprintln!("Error: {}", err),
-    }
+        .id(webhook_id)
+        .update_webhook_headers()
+        .body(WebhookHeadersReq {
+            headers: std::collections::HashMap::new(),
+        })
+        .send()
+        .await?;
+
+    println!("{}", to_pretty_json(&resp)?);
+
+    Ok(())
 }

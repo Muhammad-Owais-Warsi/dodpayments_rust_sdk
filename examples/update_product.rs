@@ -1,31 +1,28 @@
-use dodopayments_rust::{DodoPaymentsClient, DodoPaymentsClientBuilder, ResponseData};
+use dodopayments_rust::{models::PatchProductRequest, to_pretty_json, DodoPaymentsClientBuilder};
 
 #[tokio::main]
-async fn main() {
-    let client: DodoPaymentsClient = DodoPaymentsClientBuilder::new()
-        .bearer_token("")
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let api_key = std::env::var("DODO_API_KEY")?;
+
+    let client = DodoPaymentsClientBuilder::new()
+        .bearer_token(&api_key)
         .enviroment("test_mode")
-        .build()
-        .unwrap();
+        .build()?;
 
-    let query_params = None;
-    let body = None;
+    let product_id = "prod_xxxxxxxxxx";
 
-    let ext_path = "id";
-
-    match client
+    let resp = client
         .products()
-        .update(query_params, body, Some(ext_path))
-        .await
-    {
-        Ok(resp) => match resp {
-            ResponseData::Text(text) => {
-                println!("Text response: {}", text);
-            }
-            ResponseData::Blob(bytes) => {
-                std::fs::write("invoice.pdf", &bytes).expect("Failed to write file");
-            }
-        },
-        Err(err) => eprintln!("Error: {}", err),
-    }
+        .id(product_id)
+        .update()
+        .body(PatchProductRequest {
+            name: Some("Updated Product".to_string()),
+            ..Default::default()
+        })
+        .send()
+        .await?;
+
+    println!("{}", to_pretty_json(&resp)?);
+
+    Ok(())
 }
