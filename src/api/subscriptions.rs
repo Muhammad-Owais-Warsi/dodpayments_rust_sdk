@@ -1,136 +1,126 @@
-use crate::client::{DodoError, DodoPaymentsClient, ResponseData};
+use crate::{
+    client::DodoPaymentsClient,
+    models::{
+        ChangePlanPreviewResponse, CreateSubscriptionChargeRequest,
+        CreateSubscriptionChargeResponse, CreateSubscriptionRequest, CreateSubscriptionResponse,
+        GetSubscriptionsListResponse, ListUsageHistoryQueryParams, ListUsageHistoryResponse,
+        PatchSubscriptionRequest, SubscriptionResponse, UpdatePaymentMethodReq,
+        UpdatePaymentMethodResponse, UpdateSubscriptionPlanReq,
+    },
+    request_builder::RequestBuilder,
+};
 use reqwest::Method;
-use std::collections::HashMap;
 
 pub struct SubscriptionsApi<'client> {
     pub(crate) client: &'client DodoPaymentsClient,
 }
 
 impl<'client> SubscriptionsApi<'client> {
-    pub async fn list(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::GET, "/subscriptions", query_params, body, ext_path)
-            .await
+    pub fn new(client: &'client DodoPaymentsClient) -> Self {
+        Self { client }
     }
 
-    pub async fn create(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::POST, "/subscriptions", query_params, body, ext_path)
-            .await
+    pub fn list(&self) -> RequestBuilder<'client, GetSubscriptionsListResponse, (), ()> {
+        RequestBuilder::new(self.client, Method::GET, "/subscriptions")
     }
 
-    pub async fn retrieve(
+    #[deprecated(note = "This API will be deprecated soon. We recommend using Checkout Sessions.")]
+    pub fn create(
         &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::GET, "/subscriptions", query_params, body, ext_path)
-            .await
+    ) -> RequestBuilder<'client, CreateSubscriptionResponse, (), CreateSubscriptionRequest> {
+        RequestBuilder::new(self.client, Method::POST, "/subscriptions")
     }
 
-    pub async fn change_plan(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        let new_ext_path = match ext_path {
-            Some(p) => format!("{}/charge", p),
-            None => {
-                return Err(DodoError::Custom {
-                    message: "Ext path not found".to_string(),
-                });
-            }
-        };
-        self.client
-            .request(
-                Method::POST,
-                "/subscriptions",
-                query_params,
-                body,
-                Some(&new_ext_path),
-            )
-            .await
+    pub fn id(&self, subscription_id: impl Into<String>) -> SubscriptionByIdApi<'client> {
+        SubscriptionByIdApi {
+            client: self.client,
+            subscription_id: subscription_id.into(),
+        }
+    }
+}
+
+pub struct SubscriptionByIdApi<'client> {
+    client: &'client DodoPaymentsClient,
+    subscription_id: String,
+}
+
+impl<'client> SubscriptionByIdApi<'client> {
+    pub fn retrieve(&self) -> RequestBuilder<'client, SubscriptionResponse, (), ()> {
+        RequestBuilder::new(
+            self.client,
+            Method::GET,
+            format!("/subscriptions/{}", self.subscription_id),
+        )
     }
 
-    pub async fn update(
+    pub fn update(
         &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(
-                Method::PATCH,
-                "/subscriptions",
-                query_params,
-                body,
-                ext_path,
-            )
-            .await
+    ) -> RequestBuilder<'client, SubscriptionResponse, (), PatchSubscriptionRequest> {
+        RequestBuilder::new(
+            self.client,
+            Method::PATCH,
+            format!("/subscriptions/{}", self.subscription_id),
+        )
     }
 
-    pub async fn charge(
+    pub fn update_payment_method(
         &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        let new_ext_path = match ext_path {
-            Some(p) => format!("{}/charge", p),
-            None => {
-                return Err(DodoError::Custom {
-                    message: "Ext path not found".to_string(),
-                });
-            }
-        };
-
-        self.client
-            .request(
-                Method::POST,
-                "/subscriptions",
-                query_params,
-                body,
-                Some(&new_ext_path),
-            )
-            .await
+    ) -> RequestBuilder<'client, UpdatePaymentMethodResponse, UpdatePaymentMethodReq> {
+        RequestBuilder::new(
+            self.client,
+            Method::POST,
+            format!(
+                "/subscriptions/{}/update-payment-method",
+                self.subscription_id
+            ),
+        )
     }
 
-    pub async fn get_usage_history(
-        &self, 
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        let new_ext_path = match ext_path {
-            Some(p) => format!("{}/usage-history", p),
-            None => {
-                return Err(DodoError::Custom {
-                    message: "Ext path not found".to_string(),
-                });
-            }
-        };
+    pub fn charge(
+        &self,
+    ) -> RequestBuilder<
+        'client,
+        CreateSubscriptionChargeResponse,
+        (),
+        CreateSubscriptionChargeRequest,
+    > {
+        RequestBuilder::new(
+            self.client,
+            Method::POST,
+            format!("/subscriptions/{}/charge", self.subscription_id),
+        )
+    }
 
-        self.client
-            .request(
-                Method::GET,
-                "/subscriptions",
-                query_params,
-                body,
-                Some(&new_ext_path),
-            )
-            .await
+    pub fn change_plan(
+        &self,
+    ) -> RequestBuilder<'client, SubscriptionResponse, (), UpdateSubscriptionPlanReq> {
+        RequestBuilder::new(
+            self.client,
+            Method::POST,
+            format!("/subscriptions/{}/change-plan", self.subscription_id),
+        )
+    }
+
+    pub fn preview_plan_change(
+        &self,
+    ) -> RequestBuilder<'client, ChangePlanPreviewResponse, (), UpdateSubscriptionPlanReq> {
+        RequestBuilder::new(
+            self.client,
+            Method::POST,
+            format!(
+                "/subscriptions/{}/change-plan/preview",
+                self.subscription_id,
+            ),
+        )
+    }
+
+    pub fn usage_history(
+        &self,
+    ) -> RequestBuilder<'client, ListUsageHistoryResponse, ListUsageHistoryQueryParams, ()> {
+        RequestBuilder::new(
+            self.client,
+            Method::GET,
+            format!("/subscriptions/{}/usage-history", self.subscription_id),
+        )
     }
 }

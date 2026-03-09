@@ -1,31 +1,42 @@
-use crate::client::{DodoError, DodoPaymentsClient, ResponseData};
+use crate::{
+    client::DodoPaymentsClient,
+    models::{GetDiscountsListResponse, GetDisputeResponse},
+    request_builder::RequestBuilder,
+};
 use reqwest::Method;
-use std::collections::HashMap;
 
 pub struct DisputesApi<'client> {
     pub(crate) client: &'client DodoPaymentsClient,
 }
 
 impl<'client> DisputesApi<'client> {
-    pub async fn list(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::GET, "/disputes", query_params, body, ext_path)
-            .await
+    pub fn new(client: &'client DodoPaymentsClient) -> Self {
+        Self { client }
     }
 
-    pub async fn retrieve(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::GET, "/disputes", query_params, body, ext_path)
-            .await
+    pub fn list(&self) -> RequestBuilder<'client, GetDiscountsListResponse, (), ()> {
+        RequestBuilder::new(self.client, Method::GET, "/disputes")
+    }
+
+    pub fn id(&self, dispute_id: impl Into<String>) -> DisputeByIdApi<'client> {
+        DisputeByIdApi {
+            client: self.client,
+            dispute_id: dispute_id.into(),
+        }
+    }
+}
+
+pub struct DisputeByIdApi<'client> {
+    client: &'client DodoPaymentsClient,
+    dispute_id: String,
+}
+
+impl<'client> DisputeByIdApi<'client> {
+    pub fn retrieve(&self) -> RequestBuilder<'client, GetDisputeResponse, (), ()> {
+        RequestBuilder::new(
+            self.client,
+            Method::GET,
+            format!("/disputes/{}", self.dispute_id),
+        )
     }
 }

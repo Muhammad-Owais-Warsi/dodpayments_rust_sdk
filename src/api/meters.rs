@@ -1,98 +1,62 @@
-use crate::client::{DodoError, DodoPaymentsClient, ResponseData};
+use crate::{
+    client::DodoPaymentsClient,
+    models::{CreateMeterRequest, ListMetersResponse, MeterResponse},
+    request_builder::RequestBuilder,
+};
 use reqwest::Method;
-use std::collections::HashMap;
 
 pub struct MetersApi<'client> {
     pub(crate) client: &'client DodoPaymentsClient,
 }
 
 impl<'client> MetersApi<'client> {
-    pub async fn create(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(
-                Method::POST,
-                "/meters",
-                query_params,
-                body,
-                ext_path,
-            )
-            .await
+    pub fn new(client: &'client DodoPaymentsClient) -> Self {
+        Self { client }
     }
 
-    pub async fn list(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,        
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(
-                Method::GET,
-                "/meters",
-                query_params,
-                body,
-                ext_path,
-            )
-            .await        
+    pub fn list(&self) -> RequestBuilder<'client, ListMetersResponse, (), ()> {
+        RequestBuilder::new(self.client, Method::GET, "/meters")
     }
 
-    pub async fn retrieve(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::GET, "/meters", query_params, body, ext_path)
-            .await
+    pub fn create(&self) -> RequestBuilder<'client, MeterResponse, (), CreateMeterRequest> {
+        RequestBuilder::new(self.client, Method::POST, "/meters")
     }
 
-    pub async fn archive(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,           
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(
-                Method::DELETE,
-                "/meters",
-                query_params,
-                body,
-                ext_path,
-            )
-            .await   
+    pub fn id(&self, meter_id: impl Into<String>) -> MeterByIdApi<'client> {
+        MeterByIdApi {
+            client: self.client,
+            meter_id: meter_id.into(),
+        }
+    }
+}
+
+pub struct MeterByIdApi<'client> {
+    client: &'client DodoPaymentsClient,
+    meter_id: String,
+}
+
+impl<'client> MeterByIdApi<'client> {
+    pub fn retrieve(&self) -> RequestBuilder<'client, MeterResponse, (), ()> {
+        RequestBuilder::new(
+            self.client,
+            Method::GET,
+            format!("/meters/{}", self.meter_id),
+        )
     }
 
-    pub async fn unarchive(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,           
-    ) -> Result<ResponseData, DodoError> {
-        let new_ext_path = match ext_path {
-            Some(p) => format!("{}/unarchive", p),
-            None => {
-                return Err(DodoError::Custom {
-                    message: "Ext path not found".to_string(),
-                });
-            }
-        };
-
-        self.client
-            .request(
-                Method::POST,
-                "/meters",
-                query_params,
-                body,
-                Some(&new_ext_path),
-            )
-            .await   
+    pub fn archive(&self) -> RequestBuilder<'client, (), (), ()> {
+        RequestBuilder::new(
+            self.client,
+            Method::DELETE,
+            format!("/meters/{}", self.meter_id),
+        )
     }
 
+    pub fn unarchive(&self) -> RequestBuilder<'client, MeterResponse, (), ()> {
+        RequestBuilder::new(
+            self.client,
+            Method::POST,
+            format!("/meters/{}/unarchive", self.meter_id),
+        )
+    }
 }

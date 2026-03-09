@@ -1,6 +1,8 @@
 pub mod addons;
+pub mod balance_ledger;
 pub mod brands;
 pub mod checkout;
+pub mod credit_entitlements;
 pub mod customers;
 pub mod discounts;
 pub mod disputes;
@@ -13,5 +15,4 @@ pub mod products;
 pub mod refunds;
 pub mod subscriptions;
 pub mod usage_events;
-pub mod wallets;
 pub mod webhooks;

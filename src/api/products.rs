@@ -1,142 +1,106 @@
-use crate::client::{DodoError, DodoPaymentsClient, ResponseData};
+use crate::{
+    client::DodoPaymentsClient,
+    models::{
+        CreateProductRequest, CreateShortLinkRequest, GetProductResponse, GetProductsListResponse,
+        ListShortLinksResponse, PatchProductRequest, ShortLinkResponse, UpdateProductImageResponse,
+        UploadProductFile, UploadProductFileResponse,
+    },
+    request_builder::RequestBuilder,
+};
 use reqwest::Method;
-use std::collections::HashMap;
 
 pub struct ProductsApi<'client> {
     pub(crate) client: &'client DodoPaymentsClient,
 }
 
 impl<'client> ProductsApi<'client> {
-    pub async fn list(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::GET, "/products", query_params, body, ext_path)
-            .await
+    pub fn new(client: &'client DodoPaymentsClient) -> Self {
+        Self { client }
     }
 
-    pub async fn create(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::POST, "/products", query_params, body, ext_path)
-            .await
+    pub fn list(&self) -> RequestBuilder<'client, GetProductsListResponse, (), ()> {
+        RequestBuilder::new(self.client, Method::GET, "/products")
     }
 
-    pub async fn retreive(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::GET, "/products", query_params, body, ext_path)
-            .await
+    pub fn create(&self) -> RequestBuilder<'client, GetProductResponse, (), CreateProductRequest> {
+        RequestBuilder::new(self.client, Method::POST, "/products")
     }
 
-    pub async fn update(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::PATCH, "/products", query_params, body, ext_path)
-            .await
+    pub fn list_short_links(&self) -> RequestBuilder<'client, ListShortLinksResponse, (), ()> {
+        RequestBuilder::new(self.client, Method::GET, "/products/short_links")
     }
 
-    pub async fn update_product_image(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        let new_ext_path = match ext_path {
-            Some(p) => format!("{}/images", p),
-            None => {
-                return Err(DodoError::Custom {
-                    message: "Ext path not found".to_string(),
-                });
-            }
-        };
+    pub fn id(&self, product_id: impl Into<String>) -> ProductByIdApi<'client> {
+        ProductByIdApi {
+            client: self.client,
+            product_id: product_id.into(),
+        }
+    }
+}
 
-        self.client
-            .request(
-                Method::PUT,
-                "/products",
-                query_params,
-                body,
-                Some(&new_ext_path),
-            )
-            .await
+pub struct ProductByIdApi<'client> {
+    client: &'client DodoPaymentsClient,
+    product_id: String,
+}
+
+impl<'client> ProductByIdApi<'client> {
+    pub fn retrieve(&self) -> RequestBuilder<'client, GetProductResponse, (), ()> {
+        RequestBuilder::new(
+            self.client,
+            Method::GET,
+            format!("/products/{}", self.product_id),
+        )
     }
 
-    pub async fn delete(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        let new_ext_path = match ext_path {
-            Some(p) => format!("{}/unarchive", p),
-            None => {
-                return Err(DodoError::Custom {
-                    message: "Ext path not found".to_string(),
-                });
-            }
-        };
-
-        self.client
-            .request(
-                Method::DELETE,
-                "/products",
-                query_params,
-                body,
-                Some(&new_ext_path),
-            )
-            .await
+    pub fn update(&self) -> RequestBuilder<'client, GetProductResponse, (), PatchProductRequest> {
+        RequestBuilder::new(
+            self.client,
+            Method::PATCH,
+            format!("/products/{}", self.product_id),
+        )
     }
 
-    pub async fn unarchive(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::POST, "/products", query_params, body, ext_path)
-            .await
+    pub fn update_image(&self) -> RequestBuilder<'client, UpdateProductImageResponse, (), ()> {
+        RequestBuilder::new(
+            self.client,
+            Method::PUT,
+            format!("/products/{}/images", self.product_id),
+        )
     }
 
-    pub async fn update_files(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        let new_ext_path = match ext_path {
-            Some(p) => format!("{}/files", p),
-            None => {
-                return Err(DodoError::Custom {
-                    message: "Ext path not found".to_string(),
-                });
-            }
-        };
+    pub fn archive(&self) -> RequestBuilder<'client, (), (), ()> {
+        RequestBuilder::new(
+            self.client,
+            Method::DELETE,
+            format!("/products/{}", self.product_id),
+        )
+    }
 
-        self.client
-            .request(
-                Method::PUT,
-                "/products",
-                query_params,
-                body,
-                Some(&new_ext_path),
-            )
-            .await
+    pub fn unarchive(&self) -> RequestBuilder<'client, (), (), ()> {
+        RequestBuilder::new(
+            self.client,
+            Method::POST,
+            format!("/products/{}/unarchive", self.product_id),
+        )
+    }
+
+    pub fn update_files(
+        &self,
+    ) -> RequestBuilder<'client, UploadProductFileResponse, (), UploadProductFile> {
+        RequestBuilder::new(
+            self.client,
+            Method::PUT,
+            format!("/products/{}/files", self.product_id),
+        )
+    }
+
+    pub fn create_short_link(
+        &self,
+    ) -> RequestBuilder<'client, ShortLinkResponse, (), CreateShortLinkRequest> {
+        RequestBuilder::new(
+            self.client,
+            Method::POST,
+            format!("/products/{}/short_links", self.product_id),
+        )
     }
 }

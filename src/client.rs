@@ -1,9 +1,10 @@
 use crate::api::{
-    addons::AddOnsApi, brands::BrandsApi, checkout::CheckoutApi, customers::CustomersApi,
+    addons::AddOnsApi, balance_ledger::BalanceLedgerEntriesApi, brands::BrandsApi,
+    checkout::CheckoutApi, credit_entitlements::CreditEntitlementsApi, customers::CustomersApi,
     discounts::DiscountsApi, disputes::DisputesApi, licenses::LicensesApi, meters::MetersApi,
     misc::MiscApi, payments::PaymentsApi, payouts::PayoutApi, products::ProductsApi,
     refunds::RefundsApi, subscriptions::SubscriptionsApi, usage_events::UsageEventsApi,
-    wallets::WalletsApi, webhooks::WebHooksApi,
+    webhooks::WebHooksApi,
 };
 use reqwest::{Client, Method};
 use std::collections::HashMap;
@@ -11,7 +12,7 @@ use thiserror::Error;
 
 pub struct DodoPaymentsClient {
     pub(crate) client: Client,
-    pub(crate) enviroment: String,
+    pub(crate) environment: String,
     pub(crate) bearer_token: String,
 }
 
@@ -41,7 +42,7 @@ impl DodoPaymentsClient {
         body: Option<serde_json::Value>,
         ext_path: Option<&str>,
     ) -> Result<ResponseData, DodoError> {
-        let mut url = format!("{}{}", self.enviroment, path);
+        let mut url = format!("{}{}", self.environment, path);
 
         if let Some(ext_path) = ext_path {
             url = format!("{}/{}", url, ext_path);
@@ -87,70 +88,74 @@ impl DodoPaymentsClient {
     }
 
     pub fn checkout_session(&self) -> CheckoutApi {
-        CheckoutApi { client: self }
+        CheckoutApi::new(self)
     }
 
     pub fn payments(&self) -> PaymentsApi {
-        PaymentsApi { client: self }
+        PaymentsApi::new(self)
     }
 
     pub fn subscriptions(&self) -> SubscriptionsApi {
-        SubscriptionsApi { client: self }
+        SubscriptionsApi::new(self)
     }
 
     pub fn discounts(&self) -> DiscountsApi {
-        DiscountsApi { client: self }
+        DiscountsApi::new(self)
     }
 
     pub fn licenses(&self) -> LicensesApi {
-        LicensesApi { client: self }
+        LicensesApi::new(self)
     }
 
     pub fn customers(&self) -> CustomersApi {
-        CustomersApi { client: self }
-    }
-
-    pub fn wallets(&self) -> WalletsApi {
-        WalletsApi { client: self }
+        CustomersApi::new(self)
     }
 
     pub fn products(&self) -> ProductsApi {
-        ProductsApi { client: self }
+        ProductsApi::new(self)
     }
 
     pub fn addons(&self) -> AddOnsApi {
-        AddOnsApi { client: self }
+        AddOnsApi::new(self)
     }
 
     pub fn meters(&self) -> MetersApi {
-        MetersApi { client: self }
+        MetersApi::new(self)
     }
 
     pub fn usage_events(&self) -> UsageEventsApi {
-        UsageEventsApi { client: self }
+        UsageEventsApi::new(self)
     }
 
     pub fn payouts(&self) -> PayoutApi {
-        PayoutApi { client: self }
+        PayoutApi::new(self)
     }
 
     pub fn refunds(&self) -> RefundsApi {
-        RefundsApi { client: self }
+        RefundsApi::new(self)
     }
 
     pub fn disputes(&self) -> DisputesApi {
-        DisputesApi { client: self }
+        DisputesApi::new(self)
     }
 
     pub fn brands(&self) -> BrandsApi {
-        BrandsApi { client: self }
+        BrandsApi::new(self)
     }
 
     pub fn webhooks(&self) -> WebHooksApi {
-        WebHooksApi { client: self }
+        WebHooksApi::new(self)
     }
 
     pub fn misc(&self) -> MiscApi {
-        MiscApi { client: self }
+        MiscApi::new(self)
+    }
+
+    pub fn balance_ledgers(&self) -> BalanceLedgerEntriesApi {
+        BalanceLedgerEntriesApi::new(self)
+    }
+
+    pub fn credit_entitlements(&self) -> CreditEntitlementsApi {
+        CreditEntitlementsApi::new(self)
     }
 }

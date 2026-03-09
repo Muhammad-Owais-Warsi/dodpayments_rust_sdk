@@ -1,64 +1,86 @@
-use crate::client::{DodoError, DodoPaymentsClient, ResponseData};
+use crate::{
+    client::DodoPaymentsClient,
+    models::{
+        CreateDiscountRequest, DiscountResponse, GetDiscountsListResponse, PatchDiscountRequest,
+    },
+    request_builder::RequestBuilder,
+};
 use reqwest::Method;
-use std::collections::HashMap;
 
 pub struct DiscountsApi<'client> {
     pub(crate) client: &'client DodoPaymentsClient,
 }
 
 impl<'client> DiscountsApi<'client> {
-    pub async fn list(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::GET, "/discounts", query_params, body, ext_path)
-            .await
+    pub fn new(client: &'client DodoPaymentsClient) -> Self {
+        Self { client }
     }
 
-    pub async fn create(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::POST, "/discounts", query_params, body, ext_path)
-            .await
+    pub fn list(&self) -> RequestBuilder<'client, GetDiscountsListResponse, (), ()> {
+        RequestBuilder::new(self.client, Method::GET, "/discounts")
     }
 
-    pub async fn retreive(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::GET, "/discounts", query_params, body, ext_path)
-            .await
+    pub fn create(&self) -> RequestBuilder<'client, DiscountResponse, (), CreateDiscountRequest> {
+        RequestBuilder::new(self.client, Method::POST, "/discounts")
     }
 
-    pub async fn update(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::PATCH, "/discounts", query_params, body, ext_path)
-            .await
+    pub fn id(&self, discount_id: impl Into<String>) -> DiscountByIdApi<'client> {
+        DiscountByIdApi {
+            client: self.client,
+            discount_id: discount_id.into(),
+        }
     }
 
-    pub async fn delete(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::DELETE, "/discounts", query_params, body, ext_path)
-            .await
+    pub fn code(&self, discount_code: impl Into<String>) -> DiscountByCodeApi<'client> {
+        DiscountByCodeApi {
+            client: self.client,
+            discount_code: discount_code.into(),
+        }
+    }
+}
+
+pub struct DiscountByIdApi<'client> {
+    client: &'client DodoPaymentsClient,
+    discount_id: String,
+}
+
+impl<'client> DiscountByIdApi<'client> {
+    pub fn validate(&self) -> RequestBuilder<'client, DiscountResponse, (), ()> {
+        RequestBuilder::new(
+            self.client,
+            Method::GET,
+            format!("/discounts/{}", self.discount_id),
+        )
+    }
+
+    pub fn update(&self) -> RequestBuilder<'client, DiscountResponse, (), PatchDiscountRequest> {
+        RequestBuilder::new(
+            self.client,
+            Method::PATCH,
+            format!("/discounts/{}", self.discount_id),
+        )
+    }
+
+    pub fn delete(&self) -> RequestBuilder<'client, (), (), ()> {
+        RequestBuilder::new(
+            self.client,
+            Method::DELETE,
+            format!("/discounts/{}", self.discount_id),
+        )
+    }
+}
+
+pub struct DiscountByCodeApi<'client> {
+    client: &'client DodoPaymentsClient,
+    discount_code: String,
+}
+
+impl<'client> DiscountByCodeApi<'client> {
+    pub fn retrieve_by_code(&self) -> RequestBuilder<'client, DiscountResponse, (), ()> {
+        RequestBuilder::new(
+            self.client,
+            Method::GET,
+            format!("/discounts/code/{}", self.discount_code),
+        )
     }
 }

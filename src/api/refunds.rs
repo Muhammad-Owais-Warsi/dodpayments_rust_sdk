@@ -1,42 +1,54 @@
-use crate::client::{DodoError, DodoPaymentsClient, ResponseData};
+use crate::{
+    client::DodoPaymentsClient,
+    models::{CreateRefundRequest, GetRefundsListResponse, RefundResponse},
+    request_builder::{RawBytes, RequestBuilder},
+};
 use reqwest::Method;
-use std::collections::HashMap;
 
 pub struct RefundsApi<'client> {
     pub(crate) client: &'client DodoPaymentsClient,
 }
 
 impl<'client> RefundsApi<'client> {
-    pub async fn list(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::GET, "/refunds", query_params, body, ext_path)
-            .await
+    pub fn new(client: &'client DodoPaymentsClient) -> Self {
+        Self { client }
     }
 
-    pub async fn create(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::POST, "/refunds", query_params, body, ext_path)
-            .await
+    pub fn list(&self) -> RequestBuilder<'client, GetRefundsListResponse, (), ()> {
+        RequestBuilder::new(self.client, Method::GET, "/refunds")
     }
 
-    pub async fn retreive(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::GET, "/refunds", query_params, body, ext_path)
-            .await
+    pub fn create(&self) -> RequestBuilder<'client, RefundResponse, (), CreateRefundRequest> {
+        RequestBuilder::new(self.client, Method::POST, "/refunds")
+    }
+
+    pub fn id(&self, refund_id: impl Into<String>) -> RefundByIdApi<'client> {
+        RefundByIdApi {
+            client: self.client,
+            refund_id: refund_id.into(),
+        }
+    }
+}
+
+pub struct RefundByIdApi<'client> {
+    client: &'client DodoPaymentsClient,
+    refund_id: String,
+}
+
+impl<'client> RefundByIdApi<'client> {
+    pub fn retrieve(&self) -> RequestBuilder<'client, RefundResponse, (), ()> {
+        RequestBuilder::new(
+            self.client,
+            Method::GET,
+            format!("/refunds/{}", self.refund_id),
+        )
+    }
+
+    pub fn retrieve_reciept(&self) -> RequestBuilder<'client, RawBytes, (), ()> {
+        RequestBuilder::new(
+            self.client,
+            Method::GET,
+            format!("invoices/refunds/{}", self.refund_id),
+        )
     }
 }

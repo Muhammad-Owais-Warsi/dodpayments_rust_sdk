@@ -1,8 +1,8 @@
-use crate::client::DodoPaymentsClient;
+use crate::{client::DodoPaymentsClient, DodoError};
 use reqwest::Client;
 
 pub struct DodoPaymentsClientBuilder {
-    enviroment: Option<String>,
+    environment: Option<String>,
     bearer_token: Option<String>,
     timeout: Option<u64>,
 }
@@ -10,14 +10,14 @@ pub struct DodoPaymentsClientBuilder {
 impl DodoPaymentsClientBuilder {
     pub fn new() -> Self {
         Self {
-            enviroment: None,
+            environment: None,
             bearer_token: None,
             timeout: None,
         }
     }
 
     pub fn enviroment(mut self, env: &str) -> Self {
-        self.enviroment = Some(env.to_string());
+        self.environment = Some(env.to_string());
         self
     }
 
@@ -31,25 +31,33 @@ impl DodoPaymentsClientBuilder {
         self
     }
 
-    pub fn build(self) -> Result<DodoPaymentsClient, &'static str> {
-        let env = match self.enviroment {
+    pub fn build(self) -> Result<DodoPaymentsClient, DodoError> {
+        let env = match self.environment {
             Some(env) if env == "test_mode" => "https://test.dodopayments.com".to_string(),
             Some(env) if env == "live_mode" => "https://live.dodopayments.com".to_string(),
             None => "https://live.dodopayments.com".to_string(),
-            Some(_) => panic!("This mode is not supported"),
+            Some(_) => {
+                return Err(DodoError::Custom {
+                    message: "This mode is not supported".to_string(),
+                })
+            }
         };
 
-        let token = self.bearer_token.ok_or("Bearer token is required")?;
+        let token = self.bearer_token.ok_or_else(|| DodoError::Custom {
+            message: "Bearer token is required.".to_string(),
+        })?;
         let mut builder = Client::builder();
         if let Some(secs) = self.timeout {
             builder = builder.timeout(std::time::Duration::from_secs(secs));
         }
 
-        let client = builder.build().map_err(|_| "Failed to build client")?;
+        let client = builder.build().map_err(|e| DodoError::Custom {
+            message: e.to_string(),
+        })?;
 
         Ok(DodoPaymentsClient {
             client,
-            enviroment: env,
+            environment: env,
             bearer_token: token,
         })
     }

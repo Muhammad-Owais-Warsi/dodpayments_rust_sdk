@@ -1,144 +1,130 @@
-use crate::client::{DodoError, DodoPaymentsClient, ResponseData};
+use crate::{
+    client::DodoPaymentsClient,
+    models::{
+        ActivateLicenseKeyRequest, ActivateLicenseKeyResponse, DeactivateLicenseKeyRequest,
+        LicenseKeyInstanceResponse, LicenseKeyResponse, ListLicenseKeyInstancesResponse,
+        ListLicenseKeysResponse, PatchLicenseKeyInstanceRequest, PatchLicenseKeyRequest,
+        ValidateLicenseKeyRequest, ValidateLicenseKeyResponse,
+    },
+    request_builder::RequestBuilder,
+};
 use reqwest::Method;
-use std::collections::HashMap;
 
 pub struct LicensesApi<'client> {
     pub(crate) client: &'client DodoPaymentsClient,
 }
 
 impl<'client> LicensesApi<'client> {
-    pub async fn activate(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(
-                Method::POST,
-                "/licenses/activate",
-                query_params,
-                body,
-                ext_path,
-            )
-            .await
+    pub fn new(client: &'client DodoPaymentsClient) -> Self {
+        Self { client }
     }
 
-    pub async fn deactivate(
+    pub fn activate(
         &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(
-                Method::POST,
-                "/licenses/deactivate",
-                query_params,
-                body,
-                ext_path,
-            )
-            .await
+    ) -> RequestBuilder<'client, ActivateLicenseKeyResponse, (), ActivateLicenseKeyRequest> {
+        RequestBuilder::new(self.client, Method::POST, "/licenses/activate")
     }
 
-    pub async fn validate(
+    pub fn deactivate(
         &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(
-                Method::POST,
-                "/licenses/validate",
-                query_params,
-                body,
-                ext_path,
-            )
-            .await
+    ) -> RequestBuilder<'client, LicenseKeyResponse, (), DeactivateLicenseKeyRequest> {
+        RequestBuilder::new(self.client, Method::POST, "/licenses/deactivate")
     }
 
-    pub async fn list(
+    pub fn validate(
         &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::GET, "/license_keys", query_params, body, ext_path)
-            .await
+    ) -> RequestBuilder<'client, ValidateLicenseKeyResponse, (), ValidateLicenseKeyRequest> {
+        RequestBuilder::new(self.client, Method::POST, "/licenses/validate")
     }
 
-    pub async fn retreive(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::GET, "/license_keys", query_params, body, ext_path)
-            .await
+    pub fn license_keys(&self) -> LicenseKeysApi<'client> {
+        LicenseKeysApi {
+            client: self.client,
+        }
+    }
+}
+
+pub struct LicenseKeysApi<'client> {
+    client: &'client DodoPaymentsClient,
+}
+
+impl<'client> LicenseKeysApi<'client> {
+    pub fn list(&self) -> RequestBuilder<'client, ListLicenseKeysResponse, (), ()> {
+        RequestBuilder::new(self.client, Method::GET, "/license_keys")
     }
 
-    pub async fn update(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::PATCH, "/license_keys", query_params, body, ext_path)
-            .await
+    pub fn id(&self, license_key_id: impl Into<String>) -> LicenseKeyByIdApi<'client> {
+        LicenseKeyByIdApi {
+            client: self.client,
+            license_key_id: license_key_id.into(),
+        }
+    }
+}
+
+pub struct LicenseKeyByIdApi<'client> {
+    client: &'client DodoPaymentsClient,
+    license_key_id: String,
+}
+
+impl<'client> LicenseKeyByIdApi<'client> {
+    pub fn retrieve(&self) -> RequestBuilder<'client, LicenseKeyResponse, (), ()> {
+        RequestBuilder::new(
+            self.client,
+            Method::GET,
+            format!("/license_keys/{}", self.license_key_id),
+        )
     }
 
-    pub async fn list_license_key_instances(
+    pub fn update(
         &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(
-                Method::GET,
-                "/license_key_instances",
-                query_params,
-                body,
-                ext_path,
-            )
-            .await
+    ) -> RequestBuilder<'client, LicenseKeyResponse, (), PatchLicenseKeyRequest> {
+        RequestBuilder::new(
+            self.client,
+            Method::PATCH,
+            format!("/license_keys/{}", self.license_key_id),
+        )
+    }
+}
+
+pub struct LicenseKeyInstancesApi<'client> {
+    client: &'client DodoPaymentsClient,
+}
+
+impl<'client> LicenseKeyInstancesApi<'client> {
+    pub fn list(&self) -> RequestBuilder<'client, ListLicenseKeyInstancesResponse, (), ()> {
+        RequestBuilder::new(self.client, Method::GET, "/license_key_instances")
     }
 
-    pub async fn list_license_key_instance(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(
-                Method::GET,
-                "/license_key_instances",
-                query_params,
-                body,
-                ext_path,
-            )
-            .await
+    pub fn id(&self, instance_id: impl Into<String>) -> LicenseKeyInstanceByIdApi<'client> {
+        LicenseKeyInstanceByIdApi {
+            client: self.client,
+            instance_id: instance_id.into(),
+        }
+    }
+}
+
+pub struct LicenseKeyInstanceByIdApi<'client> {
+    client: &'client DodoPaymentsClient,
+    instance_id: String,
+}
+
+impl<'client> LicenseKeyInstanceByIdApi<'client> {
+    pub fn retrieve(&self) -> RequestBuilder<'client, LicenseKeyInstanceResponse, (), ()> {
+        RequestBuilder::new(
+            self.client,
+            Method::GET,
+            format!("/license_key_instances/{}", self.instance_id),
+        )
     }
 
-    pub async fn update_license_key_instance(
+    pub fn update(
         &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(
-                Method::PATCH,
-                "/license_key_instances",
-                query_params,
-                body,
-                ext_path,
-            )
-            .await
+    ) -> RequestBuilder<'client, LicenseKeyInstanceResponse, (), PatchLicenseKeyInstanceRequest>
+    {
+        RequestBuilder::new(
+            self.client,
+            Method::PATCH,
+            format!("/license_key_instances/{}", self.instance_id),
+        )
     }
 }

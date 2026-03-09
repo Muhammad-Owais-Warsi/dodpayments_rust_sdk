@@ -1,42 +1,46 @@
-use crate::client::{DodoError, DodoPaymentsClient, ResponseData};
+use crate::{
+    client::DodoPaymentsClient,
+    models::{Event, GetEventsResponse, IngestEventsRequest, IngestEventsResponse},
+    request_builder::RequestBuilder,
+};
 use reqwest::Method;
-use std::collections::HashMap;
 
 pub struct UsageEventsApi<'client> {
     pub(crate) client: &'client DodoPaymentsClient,
 }
 
 impl<'client> UsageEventsApi<'client> {
-    pub async fn ingest(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::POST, "/events/ingest", query_params, body, ext_path)
-            .await
+    pub fn new(client: &'client DodoPaymentsClient) -> Self {
+        Self { client }
     }
 
-    pub async fn list(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::GET, "/events", query_params, body, ext_path)
-            .await
+    pub fn list(&self) -> RequestBuilder<'client, GetEventsResponse, (), ()> {
+        RequestBuilder::new(self.client, Method::GET, "/events")
     }
 
-    pub async fn retrieve(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::GET, "/events", query_params, body, ext_path)
-            .await
+    pub fn ingest(&self) -> RequestBuilder<'client, IngestEventsResponse, (), IngestEventsRequest> {
+        RequestBuilder::new(self.client, Method::POST, "/events/ingest")
+    }
+
+    pub fn id(&self, event_id: impl Into<String>) -> UsageEventByIdApi<'client> {
+        UsageEventByIdApi {
+            client: self.client,
+            event_id: event_id.into(),
+        }
+    }
+}
+
+pub struct UsageEventByIdApi<'client> {
+    client: &'client DodoPaymentsClient,
+    event_id: String,
+}
+
+impl<'client> UsageEventByIdApi<'client> {
+    pub fn retrieve(&self) -> RequestBuilder<'client, Event, (), ()> {
+        RequestBuilder::new(
+            self.client,
+            Method::GET,
+            format!("/events/{}", self.event_id),
+        )
     }
 }

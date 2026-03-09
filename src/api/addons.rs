@@ -1,79 +1,65 @@
-use crate::client::{DodoError, DodoPaymentsClient, ResponseData};
+use crate::{
+    client::DodoPaymentsClient,
+    models::{
+        AddonResponse, AddonsListResponse, CreateAddonRequest, PatchAddonRequest,
+        UpdateAddonImageResponse,
+    },
+    request_builder::RequestBuilder,
+};
 use reqwest::Method;
-use std::collections::HashMap;
 
 pub struct AddOnsApi<'client> {
     pub(crate) client: &'client DodoPaymentsClient,
 }
 
 impl<'client> AddOnsApi<'client> {
-    pub async fn list(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::GET, "/addons", query_params, body, ext_path)
-            .await
+    pub fn new(client: &'client DodoPaymentsClient) -> Self {
+        Self { client }
     }
 
-    pub async fn create(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::POST, "/addons", query_params, body, ext_path)
-            .await
+    pub fn list(&self) -> RequestBuilder<'client, AddonsListResponse, (), ()> {
+        RequestBuilder::new(self.client, Method::GET, "/addons")
     }
 
-    pub async fn retreive(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::GET, "/addons", query_params, body, ext_path)
-            .await
+    pub fn create(&self) -> RequestBuilder<'client, AddonResponse, (), CreateAddonRequest> {
+        RequestBuilder::new(self.client, Method::POST, "/addons")
     }
 
-    pub async fn update(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::PATCH, "/addons", query_params, body, ext_path)
-            .await
+    pub fn id(&self, addon_id: impl Into<String>) -> AddOnByIdApi<'client> {
+        AddOnByIdApi {
+            client: self.client,
+            addon_id: addon_id.into(),
+        }
+    }
+}
+
+pub struct AddOnByIdApi<'client> {
+    client: &'client DodoPaymentsClient,
+    addon_id: String,
+}
+
+impl<'client> AddOnByIdApi<'client> {
+    pub fn retrieve(&self) -> RequestBuilder<'client, AddonResponse, (), ()> {
+        RequestBuilder::new(
+            self.client,
+            Method::GET,
+            format!("/addons/{}", self.addon_id),
+        )
     }
 
-    pub async fn update_addon_image(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        let new_ext_path = match ext_path {
-            Some(p) => format!("{}/images", p),
-            None => {
-                return Err(DodoError::Custom {
-                    message: "Ext path not found".to_string(),
-                });
-            }
-        };
+    pub fn update(&self) -> RequestBuilder<'client, AddonResponse, (), PatchAddonRequest> {
+        RequestBuilder::new(
+            self.client,
+            Method::PATCH,
+            format!("/addons/{}", self.addon_id),
+        )
+    }
 
-        self.client
-            .request(
-                Method::PUT,
-                "/addons",
-                query_params,
-                body,
-                Some(&new_ext_path),
-            )
-            .await
+    pub fn update_image(&self) -> RequestBuilder<'client, UpdateAddonImageResponse, (), ()> {
+        RequestBuilder::new(
+            self.client,
+            Method::PUT,
+            format!("/addons/{}/images", self.addon_id),
+        )
     }
 }

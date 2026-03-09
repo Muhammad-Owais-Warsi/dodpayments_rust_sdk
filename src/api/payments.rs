@@ -1,85 +1,69 @@
-use crate::client::{DodoError, DodoPaymentsClient, ResponseData};
+use crate::{
+    client::DodoPaymentsClient,
+    models::{
+        CreateOneTimePaymentRequest, CreateOneTimePaymentResponse, GetPaymentsListResponse,
+        PaymentLineItemsResponse, PaymentResponse,
+    },
+    request_builder::{RawBytes, RequestBuilder},
+};
 use reqwest::Method;
-use std::collections::HashMap;
 
 pub struct PaymentsApi<'client> {
     pub(crate) client: &'client DodoPaymentsClient,
 }
 
 impl<'client> PaymentsApi<'client> {
-    pub async fn list(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::GET, "/payments", query_params, body, ext_path)
-            .await
+    pub fn new(client: &'client DodoPaymentsClient) -> Self {
+        Self { client }
     }
 
-    pub async fn create(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::POST, "/payments", query_params, body, ext_path)
-            .await
+    pub fn list(&self) -> RequestBuilder<'client, GetPaymentsListResponse, (), ()> {
+        RequestBuilder::new(self.client, Method::GET, "/payments")
     }
 
-    pub async fn retrieve(
+    #[deprecated(note = "This API will be deprecated soon. We recommend using Checkout Sessions.")]
+    pub fn create(
         &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::GET, "/payments", query_params, body, ext_path)
-            .await
+    ) -> RequestBuilder<'client, CreateOneTimePaymentResponse, (), CreateOneTimePaymentRequest>
+    {
+        RequestBuilder::new(self.client, Method::POST, "/payments")
     }
 
-    pub async fn retrieve_invoice(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(
-                Method::GET,
-                "/invoices/payments",
-                query_params,
-                body,
-                ext_path,
-            )
-            .await
+    pub fn id(&self, payment_id: impl Into<String>) -> PaymentByIdApi<'client> {
+        PaymentByIdApi {
+            client: self.client,
+            payment_id: payment_id.into(),
+        }
+    }
+}
+
+pub struct PaymentByIdApi<'client> {
+    client: &'client DodoPaymentsClient,
+    payment_id: String,
+}
+
+impl<'client> PaymentByIdApi<'client> {
+    pub fn retrieve(&self) -> RequestBuilder<'client, PaymentResponse, (), ()> {
+        RequestBuilder::new(
+            self.client,
+            Method::GET,
+            format!("/payments/{}", self.payment_id),
+        )
     }
 
-    pub async fn retrieve_line_items(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        let new_ext_path = match ext_path {
-            Some(p) => format!("{}/charge", p),
-            None => {
-                return Err(DodoError::Custom {
-                    message: "Ext path not found".to_string(),
-                });
-            }
-        };
+    pub fn retrieve_invoice(&self) -> RequestBuilder<'client, RawBytes, (), ()> {
+        RequestBuilder::new(
+            self.client,
+            Method::GET,
+            format!("/invoices/payments/{}", self.payment_id),
+        )
+    }
 
-        self.client
-            .request(
-                Method::GET,
-                "/payments",
-                query_params,
-                body,
-                Some(&new_ext_path),
-            )
-            .await
+    pub fn line_items(&self) -> RequestBuilder<'client, PaymentLineItemsResponse, (), ()> {
+        RequestBuilder::new(
+            self.client,
+            Method::GET,
+            format!("/payments/{}/line-items", self.payment_id),
+        )
     }
 }

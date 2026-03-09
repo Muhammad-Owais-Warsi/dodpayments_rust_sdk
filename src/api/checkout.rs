@@ -1,48 +1,50 @@
-use crate::client::{DodoError, DodoPaymentsClient, ResponseData};
+use crate::{
+    client::DodoPaymentsClient,
+    models::{CalculateSessionResponse, CreateCheckoutSessionRequest, CreateSessionResponse},
+    request_builder::RequestBuilder,
+};
 use reqwest::Method;
-use std::collections::HashMap;
 
 pub struct CheckoutApi<'client> {
     pub(crate) client: &'client DodoPaymentsClient,
 }
 
 impl<'client> CheckoutApi<'client> {
-    pub async fn create(
-        &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::POST, "/checkouts", query_params, body, ext_path)
-            .await
+    pub fn new(client: &'client DodoPaymentsClient) -> Self {
+        Self { client }
     }
 
-    pub async fn preview(
+    pub fn create(
         &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(
-                Method::POST,
-                "/checkouts/preview",
-                query_params,
-                body,
-                ext_path,
-            )
-            .await
+    ) -> RequestBuilder<'client, CreateSessionResponse, (), CreateCheckoutSessionRequest> {
+        RequestBuilder::new(self.client, Method::POST, "/checkouts")
     }
 
-    pub async fn retreive(
+    pub fn preview(
         &self,
-        query_params: Option<HashMap<&str, &str>>,
-        body: Option<serde_json::Value>,
-        ext_path: Option<&str>,
-    ) -> Result<ResponseData, DodoError> {
-        self.client
-            .request(Method::GET, "/checkouts", query_params, body, ext_path)
-            .await
+    ) -> RequestBuilder<'client, CalculateSessionResponse, (), CreateCheckoutSessionRequest> {
+        RequestBuilder::new(self.client, Method::POST, "/checkouts/preview")
+    }
+
+    pub fn id(&self, checkout_id: impl Into<String>) -> CheckoutByIdApi<'client> {
+        CheckoutByIdApi {
+            client: self.client,
+            checkout_id: checkout_id.into(),
+        }
+    }
+}
+
+pub struct CheckoutByIdApi<'client> {
+    client: &'client DodoPaymentsClient,
+    checkout_id: String,
+}
+
+impl<'client> CheckoutByIdApi<'client> {
+    pub fn retrieve(&self) -> RequestBuilder<'client, CreateSessionResponse, (), ()> {
+        RequestBuilder::new(
+            self.client,
+            Method::GET,
+            format!("/checkouts/{}", self.checkout_id),
+        )
     }
 }
