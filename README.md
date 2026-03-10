@@ -1,4 +1,5 @@
 ## Dodo Payments Rust SDK
+
 Unofficial rust sdk to interact with dodopayments REST API.
 
 The REST API documentation can be found on [docs.dodopayments.com](https://docs.dodopayments.com).
@@ -11,44 +12,28 @@ cargo add dodopayments_rust
 
 # Usage
 
-```js
-use dodopayments_rust::{DodoPaymentsClient, DodoPaymentsClientBuilder, ResponseData};
-use std::collections::HashMap;
+```rust
+use dodopayments_rust::{to_pretty_json, DodoPaymentsClientBuilder};
 
 #[tokio::main]
-async fn main() {
-    let client: DodoPaymentsClient = DodoPaymentsClientBuilder::new()
-        .bearer_token("")
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let api_key = std::env::var("DODO_API_KEY")?;
+
+    let client = DodoPaymentsClientBuilder::new()
+        .bearer_token(&api_key)
         .enviroment("test_mode")
-        .build()
-        .unwrap();
+        .build()?;
 
-    let mut query_params = HashMap::new();
-    query_params.insert("status", "succeeded");
+    let resp = client.payments().list().send().await?;
+    println!("{}", to_pretty_json(&resp)?);
 
-    let body = None;
-    let ext_path = None;
-
-    match client
-        .payments()
-        .list(Some(query_params), body, ext_path)
-        .await
-    {
-        Ok(resp) => match resp {
-            ResponseData::Text(text) => {
-                println!("Text response: {}", text);
-            }
-            ResponseData::Blob(bytes) => {
-                std::fs::write("invoice.pdf", &bytes).expect("Failed to write file");
-            }
-        },
-        Err(err) => eprintln!("Error: {}", err),
-    }
+    Ok(())
 }
 
 ```
 
 # Examples
+
 You can checkout examples folder to view the usage of all the endpoints.
 To run any example run the following command in your root
 
