@@ -1,10 +1,10 @@
 use crate::api::{
     addons::AddOnsApi, balance_ledger::BalanceLedgerEntriesApi, brands::BrandsApi,
     checkout::CheckoutApi, credit_entitlements::CreditEntitlementsApi, customers::CustomersApi,
-    discounts::DiscountsApi, disputes::DisputesApi, licenses::LicensesApi, meters::MetersApi,
-    misc::MiscApi, payments::PaymentsApi, payouts::PayoutApi, products::ProductsApi,
-    refunds::RefundsApi, subscriptions::SubscriptionsApi, usage_events::UsageEventsApi,
-    webhooks::WebHooksApi,
+    discounts::DiscountsApi, disputes::DisputesApi, entitlements::EntitlementsApi,
+    licenses::LicensesApi, meters::MetersApi, misc::MiscApi, payments::PaymentsApi,
+    payouts::PayoutApi, products::ProductsApi, refunds::RefundsApi,
+    subscriptions::SubscriptionsApi, usage_events::UsageEventsApi, webhooks::WebHooksApi,
 };
 use reqwest::{Client, Method};
 use std::collections::HashMap;
@@ -153,6 +153,10 @@ impl DodoPaymentsClient {
 
     pub fn balance_ledgers_entries(&self) -> BalanceLedgerEntriesApi {
         BalanceLedgerEntriesApi::new(self)
+    }
+
+    pub fn entitlements(&self) -> EntitlementsApi {
+        EntitlementsApi::new(self)
     }
 
     pub fn credit_entitlements(&self) -> CreditEntitlementsApi {

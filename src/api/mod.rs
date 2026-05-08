@@ -6,6 +6,7 @@ pub mod credit_entitlements;
 pub mod customers;
 pub mod discounts;
 pub mod disputes;
+pub mod entitlements;
 pub mod licenses;
 pub mod meters;
 pub mod misc;
