@@ -12,6 +12,7 @@ pub mod meters;
 pub mod misc;
 pub mod payments;
 pub mod payouts;
+pub mod product_collections;
 pub mod products;
 pub mod refunds;
 pub mod subscriptions;
