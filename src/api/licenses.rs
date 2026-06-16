@@ -49,10 +49,16 @@ pub struct LicenseKeysApi<'client> {
 }
 
 impl<'client> LicenseKeysApi<'client> {
+    #[deprecated(
+        note = "License keys are now managed through the Entitlements system. Use List Grants to list issued license keys (filter with integration_type=license_key); each grant carries its license_key details. This endpoint will be removed in a future release."
+    )]
     pub fn list(&self) -> RequestBuilder<'client, ListLicenseKeysResponse, (), ()> {
         RequestBuilder::new(self.client, Method::GET, "/license_keys")
     }
 
+    #[deprecated(
+        note = "License keys are now managed through the Entitlements system. Use List Grants (filter with integration_type=license_key) to retrieve a key’s grant and its license_key details. This endpoint will be removed in a future release."
+    )]
     pub fn id(&self, license_key_id: impl Into<String>) -> LicenseKeyByIdApi<'client> {
         LicenseKeyByIdApi {
             client: self.client,
@@ -75,6 +81,9 @@ impl<'client> LicenseKeyByIdApi<'client> {
         )
     }
 
+    #[deprecated(
+        note = "License keys are now managed through the Entitlements system. Configure activation limits and durations on the License Key entitlement, and use Revoke Grant to disable a customer’s key. This endpoint will be removed in a future release."
+    )]
     pub fn update(
         &self,
     ) -> RequestBuilder<'client, LicenseKeyResponse, (), PatchLicenseKeyRequest> {
