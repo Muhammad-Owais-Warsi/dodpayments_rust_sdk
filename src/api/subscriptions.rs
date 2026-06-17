@@ -1,6 +1,7 @@
 use crate::{
     client::DodoPaymentsClient,
     models::{
+        subscription_credit_usage_response::SubscriptionCreditUsageResponse,
         ChangePlanPreviewResponse, CreateSubscriptionChargeRequest,
         CreateSubscriptionChargeResponse, CreateSubscriptionRequest, CreateSubscriptionResponse,
         GetSubscriptionsListResponse, ListUsageHistoryQueryParams, ListUsageHistoryResponse,
@@ -121,6 +122,27 @@ impl<'client> SubscriptionByIdApi<'client> {
             self.client,
             Method::GET,
             format!("/subscriptions/{}/usage-history", self.subscription_id),
+        )
+    }
+
+    pub fn cancel_schedule_plan_change(&self) -> RequestBuilder<'client, (), (), ()> {
+        RequestBuilder::new(
+            self.client,
+            Method::DELETE,
+            format!(
+                "/subscriptions/{}/change-plan/scheduled",
+                self.subscription_id
+            ),
+        )
+    }
+
+    pub fn retrieve_credit_usage(
+        &self,
+    ) -> RequestBuilder<'client, SubscriptionCreditUsageResponse, (), ()> {
+        RequestBuilder::new(
+            self.client,
+            Method::GET,
+            format!("/subscriptions/{}/credit-usage", self.subscription_id),
         )
     }
 }

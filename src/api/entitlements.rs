@@ -1,6 +1,8 @@
 use crate::{
     client::DodoPaymentsClient,
     models::{
+        entitlement_grant_response::EntitlementGrantResponse,
+        fulfill_license_key_request::FulfillLicenseKeyRequest,
         list_entitlement_grants_response::ListEntitlementGrantsResponse, CreateEntitlementRequest,
         EntitlementResponse, ListEntitlementsResponse, PatchEntitlementRequest,
         UploadEntitlementFileResponse,
@@ -32,6 +34,13 @@ impl<'client> EntitlementsApi<'client> {
         EntitlementsByIdApi {
             client: self.client,
             entitlement_id: entitlement_id.into(),
+        }
+    }
+
+    pub fn grant_id(&self, grant_id: impl Into<String>) -> GrantsByIdApi<'client> {
+        GrantsByIdApi {
+            client: self.client,
+            grant_id: grant_id.into(),
         }
     }
 }
@@ -135,6 +144,23 @@ impl<'client> EntitlementsGrantApi<'client> {
                 "/entitlements/{}/grants/{}",
                 self.entitlement_id, self.grant_id
             ),
+        )
+    }
+}
+
+pub struct GrantsByIdApi<'client> {
+    client: &'client DodoPaymentsClient,
+    grant_id: String,
+}
+
+impl<'client> GrantsByIdApi<'client> {
+    pub fn fulfill_license_key_grant(
+        &self,
+    ) -> RequestBuilder<'client, EntitlementGrantResponse, (), FulfillLicenseKeyRequest> {
+        RequestBuilder::new(
+            self.client,
+            Method::POST,
+            format!("/grants/{}/license-key", self.grant_id),
         )
     }
 }
