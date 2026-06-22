@@ -1,4 +1,8 @@
-## Dodo Payments Rust SDK
+
+# You can now access the official rust SDK from the [docs](https://docs.dodopayments.com/api-reference/introduction)
+
+
+## Dodo Payments Rust SDK (Archived)
 
 Unofficial rust sdk to interact with dodopayments REST API.
 
